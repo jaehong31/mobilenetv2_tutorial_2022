@@ -1,0 +1,48 @@
+name: CIFAR10-MobileNetV2
+dataset:
+  name: cifar10
+  image_size: 32
+  num_workers: 4
+  num_classes: 10
+model:
+  backbone: mobilenetv2
+  method: BASE
+
+train:
+  optimizer:
+    name: adam
+    momentum: 0.9
+    weight_decay: 0.0005
+  
+  lr_schedule:
+    type: cosine # multistep / cosine
+    gamma: 0.1 # for multistep
+    multisteps: [80] # for multistep
+
+  batch_size: 128  
+  use_checkpoint: False
+  
+  num_epochs: 20
+  warmup_epochs: 5
+  
+  base_lr: 1e-2 # 2e-4
+  warmup_lr: 5e-5 # 1e-6
+  min_lr: 5e-4 # 1e-5
+  
+eval:
+  interval_epochs: 1
+  batch_size: 128
+  
+hyperparameters:
+  # l1 sparsification for pruning
+  L1NORM:
+    hyp: 1.0
+  # structured sparsification for pruning
+  STRUCTUREDNORM:
+    hyp: 1.0
+
+logger:
+  datetime: False
+ 
+# seed: null # None type for yaml file
+seed: null
