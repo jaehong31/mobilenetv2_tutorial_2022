@@ -10,7 +10,7 @@ model:
 
 train:
   optimizer:
-    name: adam
+    name: adam # sgd / adam / adamw
     momentum: 0.9
     weight_decay: 0.0005
   
@@ -36,10 +36,12 @@ eval:
 hyperparameters:
   # l1 sparsification for pruning
   L1NORM:
-    hyp: 1.0
+    hyp: 1e-2
+    thr: 1e-2
   # structured sparsification for pruning
   STRUCTUREDNORM:
-    hyp: 1.0
+    hyp: 1e-2
+    thr: 1e-2
 
 logger:
   datetime: False
