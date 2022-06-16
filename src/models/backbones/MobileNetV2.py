@@ -14,10 +14,15 @@ class Block(nn.Module):
         self.stride = stride
 
         planes = expansion * in_planes
+        # Expansion
         self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=1, stride=1, padding=0, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
+        
+        # Depthwise Convolution
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, groups=planes, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
+        
+        # Projection
         self.conv3 = nn.Conv2d(planes, out_planes, kernel_size=1, stride=1, padding=0, bias=False)
         self.bn3 = nn.BatchNorm2d(out_planes)
 
@@ -67,28 +72,19 @@ class MobileNetV2(nn.Module):
                 in_planes = out_planes
         return nn.Sequential(*layers)
 
-    def forward(self, x, task_id=None, return_features=False, plot_metrics=False):
-        features_list = []
-        out = F.relu(self.bn1(self.conv1(x)))
-        if plot_metrics:
-            features_list.append(out)
+    def forward(self, x, return_features=False):
+        out = F.relu(self.bn1(self.conv1(x)))       
         out = self.layers(out)
-        if plot_metrics:
-            features_list.append(out)
-        out = F.relu(self.bn2(self.conv2(out)))
-        if plot_metrics:
-            features_list.append(out)
+        out = F.relu(self.bn2(self.conv2(out)))        
+            
         # NOTE: change pooling kernel_size 7 -> 4 for CIFAR10
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
-        if plot_metrics:
-            features_list.append(out)
+        
         if return_features:
             return out
         else:
-            out = self.fc(out)
-        if plot_metrics:
-            return x, features_list
+            out = self.fc(out)        
         return out
     
     def get_params(self):
@@ -104,10 +100,3 @@ class MobileNetV2(nn.Module):
             # if pp.grad is not None:
             grads.append(pp.grad.view(-1))
         return torch.cat(grads)
-
-
-def test():
-    net = MobileNetV2()
-    x = torch.randn(2,3,32,32)
-    y = net(x)
-    print(y.size())
