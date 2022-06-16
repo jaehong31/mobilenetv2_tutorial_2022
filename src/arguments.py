@@ -39,12 +39,9 @@ def set_deterministic(seed):
         torch.backends.cudnn.benchmark = False
     
 def get_args():
-    #parser = argparse.ArgumentParser()
     parser = argparse.ArgumentParser('mobilenetv2 training script', add_help=False)
     # basics
     parser.add_argument('--tag', type=str, default='', help='tag of experiment')
-
-    # distributed training
     parser.add_argument('-c', '--config-file', default='configs/base_cifar10.yaml', type=str, metavar="FILE", help="path to yaml file")
     parser.add_argument('--data_dir', type=str, default='../data')
     parser.add_argument('--log_dir', type=str, default='../logs')
@@ -58,10 +55,8 @@ def get_args():
     parser.add_argument('--cl_model', type=str, default='BASE',
                                 choices = [ 'BASE', 
                                            ])
+    parser.add_argument('-f' '--foo')
     args = parser.parse_args()
-    
-    #config = get_config(args)
-    #set_distributed(config)
     
     with open(args.config_file, 'r') as f:
         for key, value in Namespace(yaml.load(f, Loader=yaml.FullLoader)).__dict__.items():
