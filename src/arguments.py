@@ -48,13 +48,6 @@ def get_args():
     parser.add_argument('--ckpt_dir', type=str, default='../cache/')
     parser.add_argument('--device', type=str, default='cuda'  if torch.cuda.is_available() else 'cpu')
     
-    parser.add_argument('--backbone', type=str, default='mobilenetv2', 
-                                choices = [ 'mobilenetv2',
-                                            ])
-    
-    parser.add_argument('--cl_model', type=str, default='BASE',
-                                choices = [ 'BASE', 
-                                           ])
     parser.add_argument('-f' '--foo')
     args = parser.parse_args()
     
