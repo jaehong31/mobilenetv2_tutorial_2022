@@ -60,7 +60,6 @@ class MobileNetV2(nn.Module):
         self.conv2 = nn.Conv2d(320, 1280, kernel_size=1, stride=1, padding=0, bias=False)
         self.bn2 = nn.BatchNorm2d(1280)
         self.n_classes = num_classes
-        print('self.n_classes', self.n_classes)
         self.fc = nn.Linear(1280, self.n_classes)
 
     def _make_layers(self, in_planes):

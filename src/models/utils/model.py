@@ -93,7 +93,7 @@ class Model(nn.Module):
 
     def set_task(self):
         self.lr_scheduler = self.set_optimizer_and_lr_scheduler()
-        self.net = self.net.to('cuda')
+        self.net = self.net.to(self.args.device)
         
     def end_task(self):
         pass
