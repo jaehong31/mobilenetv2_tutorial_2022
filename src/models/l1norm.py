@@ -12,7 +12,7 @@ class L1Norm(Model):
         return l1_norm loss with hyperparameters
         """        
         l1norm = [torch.norm(weight, 1) for name, weight in self.net.named_parameters() if 'weight' in name and ('conv' in name or 'fc' in name)]       
-        return self.l1.hyp * torch.mean(l1norm)
+        return self.l1.hyp * torch.mean(torch.stack(l1norm))
 
     def observe(self, inputs, labels):
         self.opt.zero_grad()
