@@ -10,15 +10,17 @@ import torch
 @torch.no_grad()
 def evaluate(model, test_loader, logger, loss=torch.nn.CrossEntropyLoss()):
     corrects, totals = 0, 0
+    
+    import pdb; pdb.set_trace()
+    get_weights = [weight for name, weight in model.net.named_parameters() if 'weight' in name and ('conv' in name or 'fc' in name)]
+    
     for images, labels in test_loader:
         preds = model(images.to(args.device))
         test_loss = loss(preds, labels.to(args.device))
         
         preds = preds.argmax(dim=1)
         correct = (preds == labels.to(args.device)).sum().item()
-        
-        
-        
+
         corrects += correct
         totals += preds.shape[0]
     logger.info(f'Accuracy: {(corrects/totals)*100:.2f} % ({corrects}/{totals}), Test Loss: {test_loss:.4f}')

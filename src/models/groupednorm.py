@@ -11,20 +11,16 @@ class GroupedNorm(Model):
         """_summary_        
         return structured_norm loss with hyperparameters
         """
-        gsnorm = 0
-        l1norm = [torch.norm(weight, 1) for name, weight in self.net.named_parameters() if 'weight' in name and ('conv' in name or 'fc' in name)]       
-        import pdb; pdb.set_trace()
-        print('2')
-        return self.l1.hyp * torch.mean(gsnorm)
-
+        get_weights = [weight for name, weight in self.net.named_parameters() if 'weight' in name and ('conv' in name or 'fc' in name)]
+        gsnorm = [torch.norm(torch.norm(w, dim=0), 1) if len(w.shape) == 2 else torch.norm(torch.norm(w.view(w.shape[0],-1), dim=1), 1) for w in get_weights]
+        return self.gs.hyp * torch.mean(torch.stack(gsnorm))
 
     def observe(self, inputs, labels):
         self.opt.zero_grad()
         if torch.cuda.is_available():
             inputs = inputs.cuda(non_blocking=True)
             labels = labels.cuda(non_blocking=True)
-           
-           
+                    
         pred = self.net(inputs)
         loss = self.loss(pred, labels)
         penalty_loss = self.penalty()
