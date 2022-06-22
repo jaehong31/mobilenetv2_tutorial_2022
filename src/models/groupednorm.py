@@ -5,7 +5,7 @@ class GroupedNorm(Model):
     NAME = 'groupednorm'
     def __init__(self, backbone, loss, args, len_train_loader, logger):
         super(GroupedNorm, self).__init__(backbone, loss, args, len_train_loader, logger)
-        self.gn = self.args.hyperparameters.STRUCTUREDNORM
+        self.gn = self.args.hyperparameters.GROUPEDNORM
 
     def penalty(self):
         get_weights = [weight for name, weight in self.net.named_parameters() if 'weight' in name and ('conv' in name or 'fc' in name)]       

@@ -39,7 +39,7 @@ hyperparameters:
     hyp: 1e-2
     thr: 1e-2
   # structured sparsification for pruning
-  STRUCTUREDNORM:
+  GROUPEDNORM:
     hyp: 1e-2
     thr: 1e-2
 
