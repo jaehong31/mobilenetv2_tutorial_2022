@@ -1,4 +1,5 @@
 from models.utils.model import Model
+import torch
 
 class L1Norm(Model):
     NAME = 'l1norm'
@@ -10,12 +11,17 @@ class L1Norm(Model):
         """_summary_        
         return l1_norm loss with hyperparameters
         """
-        pass
+        
+        l1norm = [torch.norm(weight, 1) for name, weight in self.net.named_parameters() if 'weight' in name and ('conv' in name or 'fc' in name)]
+        import pdb; pdb.set_trace()
+        
+        return self.l1.hyp * torch.mean(l1norm)
 
     def observe(self, inputs, labels):
         self.opt.zero_grad()
-        inputs = inputs.cuda(non_blocking=True)
-        labels = labels.cuda(non_blocking=True)
+        if torch.cuda.is_available():
+            inputs = inputs.cuda(non_blocking=True)
+            labels = labels.cuda(non_blocking=True)
            
         pred = self.net(inputs)
         loss = self.loss(pred, labels)

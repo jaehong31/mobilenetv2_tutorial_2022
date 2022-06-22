@@ -1,4 +1,5 @@
 from models.utils.model import Model
+import torch
 
 class Base(Model):
     NAME = 'base'
@@ -7,8 +8,10 @@ class Base(Model):
 
     def observe(self, inputs, labels):
         self.opt.zero_grad()
-        inputs = inputs.cuda(non_blocking=True)
-        labels = labels.cuda(non_blocking=True)
+        if torch.cuda.is_available():
+            inputs = inputs.cuda(non_blocking=True)
+            labels = labels.cuda(non_blocking=True)
+           
            
         pred = self.net(inputs)
         loss = self.loss(pred, labels)
