@@ -12,6 +12,8 @@ class GroupedNorm(Model):
         return structured_norm loss with hyperparameters
         """
         get_weights = [weight for name, weight in self.net.named_parameters() if 'weight' in name and ('conv' in name or 'fc' in name)]
+        import pdb; pdb.set_trace()
+        
         gsnorm = [torch.norm(torch.norm(w, dim=0), 1) if len(w.shape) == 2 else torch.norm(torch.norm(w.view(w.shape[0],-1), dim=1), 1) for w in get_weights]
         return self.gn.hyp * torch.mean(torch.stack(gsnorm))
 
