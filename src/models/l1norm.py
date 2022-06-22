@@ -10,11 +10,8 @@ class L1Norm(Model):
     def penalty(self):
         """_summary_        
         return l1_norm loss with hyperparameters
-        """
-        
-        l1norm = [torch.norm(weight, 1) for name, weight in self.net.named_parameters() if 'weight' in name and ('conv' in name or 'fc' in name)]
-        import pdb; pdb.set_trace()
-        
+        """        
+        l1norm = [torch.norm(weight, 1) for name, weight in self.net.named_parameters() if 'weight' in name and ('conv' in name or 'fc' in name)]       
         return self.l1.hyp * torch.mean(l1norm)
 
     def observe(self, inputs, labels):

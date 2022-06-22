@@ -6,7 +6,7 @@ dataset:
   num_classes: 10
 model:
   backbone: mobilenetv2
-  method: L1NORM
+  method: GROUPEDNORM
 
 train:
   optimizer:

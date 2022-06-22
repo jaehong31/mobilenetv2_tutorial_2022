@@ -11,7 +11,12 @@ class GroupedNorm(Model):
         """_summary_        
         return structured_norm loss with hyperparameters
         """
-        pass
+        gsnorm = 0
+        l1norm = [torch.norm(weight, 1) for name, weight in self.net.named_parameters() if 'weight' in name and ('conv' in name or 'fc' in name)]       
+        import pdb; pdb.set_trace()
+        print('2')
+        return self.l1.hyp * torch.mean(gsnorm)
+
 
     def observe(self, inputs, labels):
         self.opt.zero_grad()
