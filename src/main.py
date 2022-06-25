@@ -6,25 +6,72 @@ import torch.distributed as dist
 from logger import create_logger
 import numpy as np
 import torch    
+import copy
     
 @torch.no_grad()
-def evaluate(model, test_loader, logger, loss=torch.nn.CrossEntropyLoss()):
+def evaluate(model, test_loader, logger, loss=torch.nn.CrossEntropyLoss()):    
+    tmp_model = sparsify_weights(args, model, logger)
+
     corrects, totals = 0, 0
-    
-    import pdb; pdb.set_trace()
-    get_weights = [weight for name, weight in model.net.named_parameters() if 'weight' in name and ('conv' in name or 'fc' in name)]
-    
     for images, labels in test_loader:
-        preds = model(images.to(args.device))
+        preds = tmp_model(images.to(args.device))
         test_loss = loss(preds, labels.to(args.device))
         
         preds = preds.argmax(dim=1)
-        correct = (preds == labels.to(args.device)).sum().item()
-
+        correct = (preds == labels.to(args.device)).sum().item()               
+        
         corrects += correct
         totals += preds.shape[0]
+    
+    del tmp_model
+    torch.cuda.empty_cache()
     logger.info(f'Accuracy: {(corrects/totals)*100:.2f} % ({corrects}/{totals}), Test Loss: {test_loss:.4f}')
+
+
+def sparsify_weights(args, model, logger):
+    # TODO 
+    # 1. if pruning methods are applied, update the weights to be sparse given threshold (args.hyperparameters.XXXX.thr)
+    # 2. print weight sparsity (%) using logger.info() (excluding batchnorm params and biases)
+    if args.model.method == 'BASE':
+      return model
+    else:
+      nonzeros, totals = 0, 0
+      tmp_model = copy.deepcopy(model)
+      tmp_dicts = tmp_model.state_dict()
+      model_keys = tmp_dicts.keys()
+      wkeys = [key for key in model_keys if 'weight' in key and ('conv' in key or 'fc' in key)]
+
+      if args.model.method == 'L1NORM':  
+        thr = float(args.hyperparameters.L1NORM.thr)
+        for k in wkeys:
+          tmp_dicts[k] = torch.where(torch.abs(tmp_dicts[k]) > thr, tmp_dicts[k], torch.zeros_like(tmp_dicts[k]))
+          totals += np.prod(tmp_dicts[k].shape)
+          nonzeros += torch.count_nonzero(tmp_dicts[k]).item()
+      
+      elif args.model.method == 'GROUPEDNORM':
+        thr = float(args.hyperparameters.GROUPEDNORM.thr)
+        for k in wkeys:
+          kshape = tmp_dicts[k].shape
         
+          # fc == classifier
+          if len(tmp_dicts[k].shape) == 2:
+            cond = torch.mean(torch.abs(tmp_dicts[k]), dim=0) > thr
+            cond = cond.view(1,-1).expand(kshape[0], -1)
+          # convs
+          else:
+            cond = torch.mean(torch.abs(tmp_dicts[k]), dim=[1,2,3]) > thr
+            cond = cond.view(-1,1,1,1).expand(-1,kshape[1],kshape[2],kshape[3])
+
+          tmp_dicts[k] = torch.where(cond, tmp_dicts[k], torch.zeros_like(tmp_dicts[k]))          
+          totals += np.prod(tmp_dicts[k].shape)
+          nonzeros += torch.count_nonzero(tmp_dicts[k]).item()
+      
+      else:
+        NotImplementedError()
+      tmp_model.load_state_dict(tmp_dicts)      
+      logger.info(f'sparsity {(1-nonzeros/totals) * 100:.2f} % ({totals-nonzeros}/{totals}), {args.model.method} thr: {thr}')
+      return tmp_model  
+  
 def main(args):
     dataset = get_dataset(args)
     train_loader, test_loader = dataset.get_data_loaders() 
@@ -37,21 +84,20 @@ def main(args):
       
     start_time = time.time()
     for epoch in range(0, args.train.num_epochs):
-        start = time.time()
         model.train()
-
-        tr_losses = 0.
-        tr_p_losses = 0.
+        tr_losses, tr_p_losses = 0., 0.
+        
         # training phase
+        start = time.time()
         for idx, (images, labels) in enumerate(train_loader):
             data_dict = model.observe(images, labels)
             tr_losses += data_dict['loss']
-            tr_p_losses += data_dict['penalty']                
-    
+            tr_p_losses += data_dict['penalty']                    
+        epoch_time = time.time() - start
+        
         if (epoch + 1) % args.eval.interval_epochs == 0:
             evaluate(model, test_loader, logger)
     
-        epoch_time = time.time() - start
         logger.info(f"EPOCH {epoch} training takes {datetime.timedelta(seconds=int(epoch_time))}")
         logger.info('LR: {}, \
                             TR_LOSS: {}, TR_P_LOSS: {}'.format(
