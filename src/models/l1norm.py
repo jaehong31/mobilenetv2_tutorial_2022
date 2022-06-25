@@ -8,9 +8,6 @@ class L1Norm(Model):
         self.l1 = self.args.hyperparameters.L1NORM
 
     def penalty(self):
-        """_summary_        
-        return l1_norm loss with hyperparameters
-        """        
         l1norm = [torch.norm(weight, 1) for name, weight in self.net.named_parameters() if 'weight' in name and ('conv' in name or 'fc' in name)]       
         return float(self.l1.hyp) * torch.mean(torch.stack(l1norm))
 

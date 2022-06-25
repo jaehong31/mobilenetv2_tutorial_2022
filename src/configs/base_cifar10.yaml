@@ -40,8 +40,8 @@ hyperparameters:
     thr: 1e-2
   # structured sparsification for pruning
   GROUPEDNORM:
-    hyp: 1e-2
-    thr: 1e-2
+    hyp: 5e-5
+    thr: 5e-5
 
 logger:
   datetime: False
