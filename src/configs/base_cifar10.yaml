@@ -6,7 +6,7 @@ dataset:
   num_classes: 10
 model:
   backbone: mobilenetv2
-  method: GROUPEDNORM
+  method: L1NORM
 
 train:
   optimizer:
@@ -40,8 +40,8 @@ hyperparameters:
     thr: 1e-2
   # structured sparsification for pruning
   GROUPEDNORM:
-    hyp: 5e-5
-    thr: 5e-5
+    hyp: 5e-3
+    thr: 5e-3
 
 logger:
   datetime: False
